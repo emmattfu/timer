@@ -15,6 +15,8 @@ const timer = (function () {
   function start(seconds) {
     if(typeof seconds !== "number") return new Error('Please provide seconds!');
 
+    stop();
+
     const now = Date.now();
     const then = now + seconds * 1000;
 
@@ -31,13 +33,26 @@ const timer = (function () {
 
       displayTimeLeft(secondsLeft);
     }, 1000);
+    return this;
   }
 
   function displayTimeLeft(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const reminderSeconds = seconds % 60;
 
-    const display = `${minutes}:${reminderSeconds < 10 ? '0' : ''}${reminderSeconds}`;
+    const days = Math.floor(seconds/(24 * 60 * 60));
+    const hours = Math.floor(seconds/(60*60) % 24);
+    const minutes = Math.floor(seconds / 60 % 60);
+    const reminderSeconds = Math.floor((seconds % 60));
+
+    let display;
+
+    if (seconds >= 86400) {
+      display = `${days < 10 ? '0' : ''}${days}:${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}:${reminderSeconds < 10 ? '0' : ''}${reminderSeconds}`;
+    } else if (seconds >= 3600) {
+      display = `${hours < 10 ? '0' : ''}${hours}:${minutes < 10 ? '0' : ''}${minutes}:${reminderSeconds < 10 ? '0' : ''}${reminderSeconds}`;
+    } else {
+      display = `${minutes}:${reminderSeconds < 10 ? '0' : ''}${reminderSeconds}`;
+    }
+
     timerDisplay.textContent = display;
     document.title = display;
   }
@@ -46,14 +61,17 @@ const timer = (function () {
     const end = new Date(timestamp);
     const hour = end.getHours();
     const minutes = end.getMinutes();
+    const date = new Date();
 
-    endTime.textContent = `Be back at ${hour}:${minutes < 10 ? '0' : ''}${minutes}`;
+
+    endTime.textContent = `Be back on ${end.toLocaleString()}`;
   }
 
   function stop() {
     alarmSound.pause();
     alarmSound.currentTime = 0;
     clearInterval(countdown);
+    return this;
   }
 
   return {
@@ -86,19 +104,17 @@ buttons.forEach(btn => btn.addEventListener('click', startTimer));
 stopButton.addEventListener('click', stopTimer);
 
 //Работа с формой
-let input = document.querySelector('input');
-let text = input.value;
+const form = document.querySelector('form');
+const input = form['minutes'];
 
 
-input.addEventListener('submit', getInputValue);
+form.addEventListener('submit', getInputValue);
 
 function getInputValue(e) {
-    e.preventDefault();
-    // timer.start(text);
-    console.log(e);
+  e.preventDefault();
+  const seconds = input.value * 60 ;
+  timer.start(seconds);
 }
-
-console.log(text);
 
 
 
